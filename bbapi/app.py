@@ -5,6 +5,7 @@ from bbapi import gpio
 
 class _UpdateValuesPoller(gpio.PinPoller):
     def __init__(self, pin_values):
+        super(_UpdateValuesPoller, self).__init__()
         self._pin_values = pin_values
 
     def handle_pin_event(self, pin, fh, event):
@@ -15,13 +16,13 @@ class PinValues:
     def __init__(self, gpio_pins=None):
         self._gpio_pins = gpio_pins or []
         self._pin_vals = {}
-        self._stop = False
+        self._stop = True
 
     def _poll_pins(self):
-        self._stop = True
-        poller = _UpdateValuesPoller()
+        self._stop = False
+        poller = _UpdateValuesPoller(self)
         with contextlib.ExitStack() as cm_stack:
-            pins = [stack.enter_context(pin) for pin in self._gpio_pins]
+            pins = [cm_stack.enter_context(pin) for pin in self._gpio_pins]
             for pin in pins:
                 self.update_pin(pin)
                 poller.watchPin(pin)
@@ -42,6 +43,6 @@ class PinValues:
 
 
 if __name__ == '__main__':
-    pins = [gpio.GPIOPin(20)]
+    pins = [gpio.GPIOPin(20), gpio.GPIOPin(66)]
     vals = PinValues(pins)
     vals._poll_pins()

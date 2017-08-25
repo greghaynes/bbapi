@@ -5,6 +5,7 @@ import select
 class GPIOPin:
     def __init__(self, pin_number):
         self.pin_number = pin_number
+        self._do_unexport = False
 
     def __enter__(self):
         self._export()
@@ -13,11 +14,18 @@ class GPIOPin:
         return self
 
     def __exit__(self, *args, **kwargs):
-        self._unexport()
+        if self._do_unexport:
+            self._unexport()
 
     def _export(self):
-        with open('/sys/class/gpio/export', 'w') as fh:
-            fh.write('%d' % self.pin_number)
+        try:
+            with open('/sys/class/gpio/export', 'w') as fh:
+                fh.write('%d' % self.pin_number)
+        except OSError as e:
+            if e.errno != 16:
+                raise
+        else:
+            self._do_unexport = True
 
     def _set_edge(self):
         with open(str(self._sysfs_pin_dir / 'edge'), 'w') as fh:
