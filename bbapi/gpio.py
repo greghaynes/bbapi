@@ -71,8 +71,8 @@ class PinPoller:
     def handle_pin_event(self, pin, fh, event):
         pass
 
-    def poll_once(self, timeout_msecs=1000):
-        poll_evs = self._poller.poll(timeout_msecs)
+    def poll_once(self, timeout=1):
+        poll_evs = self._poller.poll(timeout)
         for fd, poll_ev in poll_evs:
             pin, fh = self._fd_pin_fh_map[fd]
             self.handle_pin_event(pin, fh, poll_ev)

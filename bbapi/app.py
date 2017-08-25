@@ -1,4 +1,5 @@
 import contextlib
+import threading
 
 from aiohttp import web
 
@@ -19,6 +20,7 @@ class PinValues:
         self._gpio_pins = gpio_pins or []
         self._pin_vals = {}
         self._stop = True
+        self._poll_thread = threading.Thread(target=self._poll_pins, name='poll_pins')
 
     def _poll_pins(self):
         self._stop = False
@@ -31,28 +33,40 @@ class PinValues:
             while not self._stop:
                 poller.poll_once()
 
+    @property
+    def all_pins(self):
+        return self._pin_vals
+
     def update_pin(self, pin):
         new_val = pin.value()
         if new_val != self._pin_vals.get(pin.pin_number):
             self._pin_vals[pin.pin_number] = new_val
             self.handle_pin_changed(pin)
 
+    def start_polling(self):
+        self._poll_thread.start()
+
     def stop_polling(self):
         self._stop =  True
+        self._poll_thread.join()
 
     def handle_pin_changed(self, pin):
         print('pins updated: %s' % self._pin_vals)
 
 
 class WebHandlers:
+    def __init__(self, pin_values):
+        self._pin_values = pin_values
+
     async def all_pins(self, request):
-        return web.json_response({'foo': 'bar'})
+        return web.json_response(self._pin_values.all_pins)
 
 
 class WebApp:
-    def __init__(self):
+    def __init__(self, pin_values):
+        self._pin_values = pin_values
         self.aio_app = web.Application()
-        self._handlers = WebHandlers()
+        self._handlers = WebHandlers(pin_values)
         self.add_routes()
 
     def add_routes(self):
