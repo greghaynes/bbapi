@@ -1,5 +1,7 @@
 import contextlib
 
+from aiohttp import web
+
 from bbapi import gpio
 
 
@@ -40,6 +42,24 @@ class PinValues:
 
     def handle_pin_changed(self, pin):
         print('pins updated: %s' % self._pin_vals)
+
+
+class WebHandlers:
+    async def all_pins(self, request):
+        return web.json_response({'foo': 'bar'})
+
+
+class WebApp:
+    def __init__(self):
+        self.aio_app = web.Application()
+        self._handlers = WebHandlers()
+        self.add_routes()
+
+    def add_routes(self):
+        self.aio_app.router.add_get('/pins/all', self._handlers.all_pins)
+
+    def run(self):
+        web.run_app(self.aio_app, port=8800)
 
 
 if __name__ == '__main__':
