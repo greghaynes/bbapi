@@ -51,7 +51,7 @@ class GPIOPin:
 
 class PinPoller:
     def __init__(self):
-        self._fd_pin_fh_map = dict()
+        self._fd_pin_fh_map = {}
         self._poller = select.epoll()
 
     def watchPin(self, pin):
