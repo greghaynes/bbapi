@@ -3,7 +3,7 @@ from bbapi import gpio
 
 
 def main():
-    pins = [gpio.GPIOPin(20)]
+    pins = []
     vals = bbapp.PinValues(pins)
     vals.start_polling()
     app = bbapp.WebApp(vals)

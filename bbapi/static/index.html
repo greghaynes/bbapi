@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+        <script>
+            function update_pins() {
+                $.getJSON( "/pins/all", function(data) {
+                    pin_names = {
+                        20: "Front Door",
+                        66: "Patio Door"
+                    }
+                    var status_msgs = Array();
+                    for(pin in data) {
+                        if (data[pin] == 1) {
+                            pin_name = pin_names[pin];
+                            if (pin_name != undefined) {
+                                status_msgs.push(pin_names[pin] + " is open.");
+                            }
+                        }
+                    }
+                    status_html = "<li>" + status_msgs.join('</li><li>') + "</li>";
+                    $("#status_messages").html(status_html);
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    status_html = "<h3>Error obtaining pin data</h3>"
+                    $("#status_messages").html(status_html);
+                });
+            }
+            $(function() {
+                setInterval(update_pins, 1000);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="status_messages">
+        </div>
+    </body>
+</html>

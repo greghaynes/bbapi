@@ -1,4 +1,5 @@
 import contextlib
+import os
 import threading
 
 from aiohttp import web
@@ -70,7 +71,11 @@ class WebApp:
         self.add_routes()
 
     def add_routes(self):
-        self.aio_app.router.add_get('/pins/all', self._handlers.all_pins)
+        router = self.aio_app.router
+        router.add_get('/pins/all', self._handlers.all_pins)
+
+        static_dir = os.path.join(os.path.dirname(__file__), 'static')
+        router.add_static('/static', static_dir)
 
     def run(self):
         web.run_app(self.aio_app, port=8800)
